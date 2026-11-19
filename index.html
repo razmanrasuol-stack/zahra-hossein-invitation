@@ -12,6 +12,10 @@
 .count{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:22px 0}.unit{min-width:76px;padding:12px 8px;border:1px solid #80652f;border-radius:12px}.unit strong{display:block;color:#f2d99d;font-size:25px}.unit small{color:#cbb98e}
 form{display:flex;gap:10px;margin:18px auto;max-width:440px}input{flex:1;min-width:0;padding:14px;border-radius:10px;border:1px solid #80652f;background:#17140e;color:white;font:inherit}button{border:0;border-radius:10px;background:linear-gradient(135deg,#f0d48f,#a77b2e);color:#1b1408;padding:14px 20px;font:inherit;font-weight:bold;cursor:pointer}
 .names{list-style:none;padding:0;display:flex;flex-wrap:wrap;justify-content:center;gap:8px}.names li{border:1px solid #66512d;border-radius:20px;padding:8px 14px;color:#ead8ae}.note{font-size:12px;color:#a99b7b;line-height:1.9;margin-top:22px}.footer{color:#b9954b;margin-top:28px;font-size:13px}
+.personal-card{margin:24px auto 10px;padding:16px;border:1px solid #b9954b;border-radius:18px;background:#17130d}
+.personal-card[hidden]{display:none}.personal-card h3{color:#f2d99d;margin:4px 0 12px}
+#inviteCanvas{display:block;width:100%;max-width:360px;height:auto;margin:0 auto;border-radius:12px;border:1px solid #80652f}
+.download-btn{margin:14px auto 4px;display:block}.private-note{font-size:12px;color:#cbb98e;line-height:1.8}
 @media(max-width:480px){.details{grid-template-columns:1fr}form{flex-direction:column}}
 </style>
 </head>
@@ -24,7 +28,14 @@ form{display:flex;gap:10px;margin:18px auto;max-width:440px}input{flex:1;min-wid
 <div class="tag">تا دیدارمان</div><div class="count" id="count"></div>
 <div class="tag">حضور شما باعث شادی ماست</div>
 <form id="rsvp"><input id="guest" maxlength="30" required placeholder="نام کوچک یا نام نمایشی شما"><button type="submit">با افتخار می‌آیم ✓</button></form>
-<p id="thanks" aria-live="polite"></p><h3>مهمانان عزیز</h3><ul class="names" id="names"></ul>
+<p id="thanks" aria-live="polite"></p>
+<section id="personalCard" class="personal-card" hidden aria-live="polite">
+<h3>کارت دعوت اختصاصی شما</h3>
+<canvas id="inviteCanvas" width="1200" height="1600" aria-label="کارت دعوت شخصی‌سازی‌شده"></canvas>
+<button type="button" id="downloadCard" class="download-btn">دانلود کارت دعوت (PNG) ↓</button>
+<p class="private-note">این کارت با نام شما ساخته شده و فقط در همین صفحه برای شما نمایش داده می‌شود. فایل دانلودشده را می‌توانید نزد خود نگه دارید یا برای دیگران بفرستید.</p>
+</section>
+<h3>مهمانان عزیز</h3><ul class="names" id="names"></ul>
 <p class="note">فعلاً نام‌ها فقط در همین مرورگر ذخیره و نمایش داده می‌شوند و برای دیگر مهمانان قابل مشاهده نیستند. برای نمایش مشترک نام‌ها بین همه، باید یک پایگاه داده آنلاین به سایت متصل شود. لطفاً فقط نام کوچک یا نام نمایشی وارد کنید.</p>
 <div class="footer">با مهر، زهرا و حسین</div><div class="orn">✦ ❖ ✦</div>
 </main>
@@ -34,5 +45,52 @@ function tick(){let ms=Math.max(0,target-Date.now()),d=Math.floor(ms/86400000),h
 tick();setInterval(tick,1000);
 const key='zahra-hossein-guests-v1',names=document.getElementById('names');
 function render(){names.innerHTML='';JSON.parse(localStorage.getItem(key)||'[]').forEach(n=>{let li=document.createElement('li');li.textContent=n;names.appendChild(li)})}render();
-document.getElementById('rsvp').addEventListener('submit',e=>{e.preventDefault();let input=document.getElementById('guest'),name=input.value.trim();if(!name)return;let list=JSON.parse(localStorage.getItem(key)||'[]');if(!list.includes(name)){list.push(name);localStorage.setItem(key,JSON.stringify(list));render()}document.getElementById('thanks').textContent='سپاس از اعلام حضورتان! منتظر دیدارتان هستیم ✨';try{let C=window.AudioContext||window.webkitAudioContext;if(C){let c=new C(),o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=880;g.gain.setValueAtTime(.08,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.22);o.start();o.stop(c.currentTime+.22)}}catch{}input.value=''});
+function drawInviteCard(name,code){
+ const canvas=document.getElementById('inviteCanvas'),ctx=canvas.getContext('2d');
+ const w=canvas.width,h=canvas.height;
+ ctx.clearRect(0,0,w,h);
+ const bg=ctx.createLinearGradient(0,0,w,h);bg.addColorStop(0,'#302311');bg.addColorStop(.48,'#0b0a08');bg.addColorStop(1,'#3b2a12');
+ ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);
+ ctx.strokeStyle='#d6b568';ctx.lineWidth=8;ctx.strokeRect(42,42,w-84,h-84);
+ ctx.strokeStyle='#80652f';ctx.lineWidth=2;ctx.strokeRect(62,62,w-124,h-124);
+ ctx.textAlign='center';ctx.direction='rtl';
+ function line(text,y,size,color='#f2d99d',weight='normal'){ctx.fillStyle=color;ctx.font=weight+' '+size+'px Tahoma, Arial';ctx.fillText(text,w/2,y)}
+ line('✦  ❖  ✦',190,58,'#d6b568');
+ line('کارت دعوت اختصاصی',330,58,'#d6b568','bold');
+ line('مراسم عقد',445,82,'#f7edda','bold');
+ line('زهرا نقره‌ای',600,76,'#f2d99d','bold');
+ line('&',690,54,'#d6b568');
+ line('حسین علیرضایی',790,76,'#f2d99d','bold');
+ ctx.strokeStyle='#b9954b';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(220,870);ctx.lineTo(980,870);ctx.stroke();
+ line('مهمان گرامی',980,42,'#d6b568');
+ line(name,1080,72,'#fff3d5','bold');
+ line('۴ آذر ۱۴۰۵  |  ساعت ۱۹:۳۰',1210,42);
+ line('خانه، خیابان شهید بهشتی، ۱۲',1280,38);
+ line('کد کارت: '+code,1410,32,'#d6b568');
+ line('با مهر، زهرا و حسین',1480,34,'#d6b568');
+ line('✦  ❖  ✦',1530,42,'#d6b568');
+}
+function showPersonalCard(name,code){
+ document.getElementById('personalCard').hidden=false;
+ drawInviteCard(name,code);
+ document.getElementById('downloadCard').onclick=()=>{
+  const a=document.createElement('a');
+  a.download='دعوتنامه-'+name.replace(/[\\/:*?"<>|]/g,'-')+'.png';
+  a.href=document.getElementById('inviteCanvas').toDataURL('image/png');
+  a.click();
+ };
+}
+document.getElementById('rsvp').addEventListener('submit',e=>{
+ e.preventDefault();
+ const input=document.getElementById('guest'),name=input.value.trim();
+ if(!name)return;
+ let list=JSON.parse(localStorage.getItem(key)||'[]');
+ if(!list.includes(name)){list.push(name);localStorage.setItem(key,JSON.stringify(list));render()}
+ const code=Math.random().toString(36).slice(2,8).toUpperCase();
+ showPersonalCard(name,code);
+ document.getElementById('thanks').textContent='سپاس از اعلام حضورتان! کارت دعوت اختصاصی شما آماده است ✨';
+ try{let C=window.AudioContext||window.webkitAudioContext;if(C){let c=new C(),o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=880;g.gain.setValueAtTime(.08,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.22);o.start();o.stop(c.currentTime+.22)}}catch{}
+ input.value='';
+ document.getElementById('personalCard').scrollIntoView({behavior:'smooth',block:'center'});
+});
 </script></body></html>
